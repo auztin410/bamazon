@@ -20,10 +20,110 @@ connection.connect(function(err) {
     
 })
 
+sectionSelect();
 
-    displayProducts();
 
 
+    // displayProducts();
+
+
+
+function sectionSelect(){
+    inquirer.prompt([
+        {
+            name: "sectionSelect",
+            type: "list",
+            choices: ["Customer", "Manager"],
+            message: "What section do you want to access?"
+        }
+    ]).then(function(answer){
+        switch(answer.sectionSelect){
+
+            case "Customer":
+                displayProducts();
+                break;
+
+            case "Manager":
+                manageProducts();
+                break;
+        }
+    })
+}    
+
+
+function manageProducts(){
+    connection.query("SELECT * FROM products", function(err, res){
+        if(err) return console.log(err.message);
+
+        // Consoling out a nice table of all the products for the manager to choose from.
+        console.table(res);
+
+        inquirer.prompt([
+            {
+                name: "itemId",
+                input: "text",
+                message: "Please select an item ID for restocking."
+            },
+            {
+                name: "itemQuantity",
+                input: "text",
+                message: "How many should we restock of this item?"
+            }
+        ]).then(function(answer){
+
+            // for loop and variable to get the correct index in the results array for the id selected.
+            var chosenItem;
+            for(var i = 0; i < res.length; i++){
+                if(res[i].id == answer.itemId){
+                    chosenItem = res[i];
+                }
+            }
+
+            console.log(chosenItem.stock);
+            console.log(answer.itemQuantity);
+
+            // creating a variable to convert the answered quantity into a integer.
+            var parsed = parseInt(answer.itemQuantity);
+
+            // creating a variable to add the chosen quantity to the old stock value and creating the new stock value.
+            var restockedQuantity = chosenItem.stock += parsed;
+
+            
+
+            // consoling out that the specific itme has been restocked and what the new stock amount is.
+            console.log("You have restocked " + chosenItem.name + " the warehouse now has: " + chosenItem.stock + " in stock.");
+
+            // sending the updated stock value to the database for the selected item id.
+            var query = connection.query(
+                "UPDATE products SET ? WHERE ?",
+                [
+                    {
+                        stock: restockedQuantity
+                    },
+                    {
+                        id: answer.itemId
+                    }
+                ]
+            )
+
+            inquirer.prompt([
+                {
+                    name: "promptContinue",
+                    type: "confirm",
+                    message: "Would you like to order anything else?" 
+                }
+            ]).then(function(answer){
+                if(answer.promptContinue === true){
+                    sectionSelect();
+                }
+                else{
+                    console.log("Closing out Manager section.")
+                    connection.end();
+                }
+            });
+        });
+    });
+}
 
 
 function displayProducts(){
@@ -37,7 +137,7 @@ function displayProducts(){
             {
                 name: "itemId",
                 input: "text",
-                message: "Please select an item's ID number to order."
+                message: "Please select an item ID number to order."
             },
             {
                 name: "itemQuantity",
@@ -48,8 +148,8 @@ function displayProducts(){
             
             // For loop and variable to select and store the correct index in the array for the selected item.
             var chosenItem;
-            for (var i = 0; i < res.length; i++) {
-                if (res[i].id == answer.itemId) {
+            for (var i = 0; i < res.length; i++){
+                if(res[i].id == answer.itemId){
                   chosenItem = res[i];
                 }
             }
@@ -73,7 +173,7 @@ function displayProducts(){
                     }
                 ]).then(function(answer){
                     if(answer.promptContinue === true){
-                        displayProducts();
+                        sectionSelect();
                     }
                     else{
                         console.log("Sorry for the inconvenience and have a nice day!");
@@ -104,11 +204,11 @@ function displayProducts(){
                 {
                     name: "promptContinue",
                     type: "confirm",
-                    message: "Would you like to order anything else?"
+                    message: "Would you like to do anything else?"
                 }
             ]).then(function(answer){
                 if(answer.promptContinue === true){
-                    displayProducts();
+                    sectionSelect();
                 }
                 else{
                     console.log("Thanks for using Bamazon and have a great day!")
@@ -118,7 +218,7 @@ function displayProducts(){
         }
         });
         
-    })
+    });
 }
 
 
