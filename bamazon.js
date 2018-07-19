@@ -20,10 +20,9 @@ connection.connect(function(err) {
     
 })
 
-var promptGo = true;
-if(promptGo === true){
+
     displayProducts();
-}
+
 
 
 
