@@ -1,5 +1,13 @@
 # bamazon
 
+A Node.js application that simulates an ordering system like Amazon.
+
+Always you to select an item from a table, choose how many you want and will tell you what you owe.
+
+It also has a manager side to restock items, see which items have low stock, and add new products.
+
+I did this use Node.js, MYSQL database, and node packages(inquirer and console.table).
+
 Start Screen: displaying the choice between customer and manager
 ![](./data/1.png)
 
